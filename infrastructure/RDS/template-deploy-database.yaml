@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: template to deploy AWS RDS instance for wordpress site
+
+Parameters: 
+  DBUser: 
+    Description: DBUser for the database
+    Type: String
+    MinLength: 4
+    MaxLength: 24
+    AllowedPattern: ^[a-zA-Z0-9]*$
+  DBInstanceParam: 
+    Description: DB instance for the database
+    Type: String
+    MinLength: 4
+    MaxLength: 24
+    AllowedPattern: ^[a-zA-Z0-9]*$
+  DBNameParam: 
+    Description: DBName for the database
+    Type: String
+    MinLength: 4
+    MaxLength: 24
+    AllowedPattern: ^[a-zA-Z0-9]*$
+  DBPassword: 
+    NoEcho: true
+    Description: The database admin account password
+    Type: String
+    MinLength: 1
+    MaxLength: 41
+    AllowedPattern: ^[a-zA-Z0-9]*$
+
+Resources:
+  MyDB: 
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceParam
+      DBName: !Ref DBNameParam
+      AllocatedStorage: "100"
+      DBInstanceClass: db.t2.micro
+      Engine: MySQL
+      EngineVersion: "5.7.26"
+      AvailabilityZone: eu-west-1c
+      MasterUserPassword: 
+        Ref: DBPassword
+      MasterUsername: 
+        Ref: DBUser
+      DBSubnetGroupName: default-vpc-4b504e2d
+      VPCSecurityGroups: 
+       - sg-077c2513e3f765503
+       - sg-89cc02c0
+      PubliclyAccessible: no
