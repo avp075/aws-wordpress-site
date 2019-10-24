@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: template to register application loadbalancer dns with route53  
+
+Parameters:
+  LoadBalancerHostedZoneId:
+    Type: String
+    Description: HostedZoneId of the Load Balancer
+    Default: 'Z32O12XQLNTSW2'
+
+Resources:
+  RecordMappingLoadBalancer:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: aviralpandey.nl.
+      AliasTarget:
+        DNSName: 
+          Fn::ImportValue: template-deploy-application-load-balancer-dns
+        EvaluateTargetHealth: false
+        HostedZoneId: !Ref LoadBalancerHostedZoneId
+      Name: demo.aviralpandey.nl.
+      Type: 'A'
