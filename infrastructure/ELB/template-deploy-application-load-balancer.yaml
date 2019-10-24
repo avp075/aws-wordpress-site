@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: template to deploy application loadbalancer and connect to elastic cloud compute  
+
+Resources:  
+  LoadBalancerWordPressSite:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Subnets:
+          - subnet-4ba4ec2d
+          - subnet-4ce27716
+          - subnet-69560d21
+      SecurityGroups:
+          - sg-068ecc2d65346af3d
+      Scheme: internet-facing
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancerWordPressSite
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref LoadBalancerTargetGroup
+
+  LoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: LoadBalancerWordPressSite
+    Properties:
+      VpcId: vpc-4b504e2d
+      HealthCheckPort: 80
+      Port: 80
+      Protocol: HTTP
+      Matcher:
+           HttpCode: 200
+      HealthCheckIntervalSeconds: 5
+      HealthCheckPath: /healthy.html
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 2
+      HealthyThresholdCount: 2
+      TargetType: "instance"
+      Targets:
+          - Id: 
+              Fn::ImportValue: template-deploy-elastic-cloud-compute-instance
+            Port: 80
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 30
+
+  LoadBalancerListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref LoadBalancerListener
+      Priority: 1
+      Conditions:
+        - Field: path-pattern
+          Values:
+             - /
+      Actions:
+        - TargetGroupArn: !Ref LoadBalancerTargetGroup
+          Type: forward
+
+Outputs:
+  LoadBalancerDNS:
+    Description: Application Loadbalancer Used For Wordpress Site 
+    Value: !GetAtt LoadBalancerWordPressSite.DNSName
+    Export:
+        Name:
+          Fn::Sub: "${AWS::StackName}-dns"
