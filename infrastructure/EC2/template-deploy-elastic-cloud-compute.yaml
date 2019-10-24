@@ -31,3 +31,11 @@ Resources:
       KeyName: aviral2k19key
       SecurityGroupIds:
         - sg-068ecc2d65346af3d
+
+Outputs:
+  WordpressSiteEc2Instance:
+    Description: EC2 Instnace used for Application Loadbalancer
+    Value: !Ref WordpressSiteEc2Instance
+    Export:
+        Name:
+          Fn::Sub: "${AWS::StackName}-instance"
