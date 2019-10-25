@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  This template shows how to deploy sample wordpress site by using aws services elastic cloud compute,
+  application loadbalancer, My Sql RDS database, S3 bucket and Route53.
+
+Parameters: 
+  DBUser: 
+    Description: DBUser for the database
+    Type: String
+    MinLength: 4
+    MaxLength: 24
+    AllowedPattern: ^[a-zA-Z0-9]*$
+  DBInstanceParam: 
+    Description: DB instance for the database
+    Type: String
+    MinLength: 4
+    MaxLength: 24
+    AllowedPattern: ^[a-zA-Z0-9]*$
+  DBNameParam: 
+    Description: DBName for the database
+    Type: String
+    MinLength: 4
+    MaxLength: 24
+    AllowedPattern: ^[a-zA-Z0-9]*$
+  DBPassword: 
+    NoEcho: true
+    Description: The database admin account password
+    Type: String
+    MinLength: 1
+    MaxLength: 41
+    AllowedPattern: ^[a-zA-Z0-9]*$
+  LoadBalancerHostedZoneId:
+    Type: String
+    Description: HostedZoneId of the Load Balancer 
+    Default: 'Z32O12XQLNTSW2'
+
+Resources:
+
+  WordpressSiteEc2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install httpd php php-mysql -y
+          cd /var/www/html
+          echo "healthy" > healthy.html
+          wget https://wordpress.org/wordpress-5.1.1.tar.gz
+          tar -xzf wordpress-5.1.1.tar.gz
+          cp -r wordpress/* /var/www/html/
+          rm -rf wordpress
+          rm -rf wordpress-5.1.1.tar.gz
+          chmod -R 755 wp-content
+          chown -R apache:apache wp-content
+          chkconfig httpd on
+          service httpd start
+      ImageId:  ami-028188d9b49b32a80
+      InstanceType: t2.micro
+      SubnetId: subnet-69560d21
+      Tags:
+        - Key: Name
+          Value: wordpress-ec2-instance
+      KeyName: aviral2k19key
+      SecurityGroupIds:
+        - sg-068ecc2d65346af3d
+        
+  LoadBalancerWordPressSite:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Subnets:
+          - subnet-4ba4ec2d
+          - subnet-4ce27716
+          - subnet-69560d21
+      SecurityGroups:
+          - sg-068ecc2d65346af3d
+      Scheme: internet-facing
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancerWordPressSite
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref LoadBalancerTargetGroup
+
+  LoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: LoadBalancerWordPressSite
+    Properties:
+      VpcId: vpc-4b504e2d
+      HealthCheckPort: 80
+      Port: 80
+      Protocol: HTTP
+      Matcher:
+           HttpCode: 200
+      HealthCheckIntervalSeconds: 5
+      HealthCheckPath: /healthy.html
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 2
+      HealthyThresholdCount: 2
+      TargetType: "instance"
+      Targets:
+          - Id: !Ref WordpressSiteEc2Instance
+            Port: 80
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 30
+
+  LoadBalancerListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref LoadBalancerListener
+      Priority: 1
+      Conditions:
+        - Field: path-pattern
+          Values:
+             - /
+      Actions:
+        - TargetGroupArn: !Ref LoadBalancerTargetGroup
+          Type: forward
+          
+  WordPressDB: 
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceParam
+      DBName: !Ref DBNameParam
+      AllocatedStorage: "100"
+      DBInstanceClass: db.t2.micro
+      Engine: MySQL
+      EngineVersion: "5.7.26"
+      AvailabilityZone: eu-west-1c
+      MasterUserPassword: 
+        Ref: DBPassword
+      MasterUsername: 
+        Ref: DBUser
+      DBSubnetGroupName: default-vpc-4b504e2d
+      VPCSecurityGroups: 
+       - sg-077c2513e3f765503
+       - sg-89cc02c0
+      PubliclyAccessible: no
+
+  RecordMappingLoadBalancer:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: aviralpandey.nl.
+      AliasTarget:
+        DNSName: !GetAtt LoadBalancerWordPressSite.DNSName
+        EvaluateTargetHealth: false
+        HostedZoneId: !Ref LoadBalancerHostedZoneId
+      Name: demo.aviralpandey.nl.
+      Type: 'A'
+
+Outputs:
+  DBDNSName:
+    Description: 'The connection endpoint for the DB cluster.'
+    Value: !GetAtt 'WordPressDB.Endpoint.Address'
