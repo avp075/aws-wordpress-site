@@ -1,7 +1,7 @@
 ## demo-wordpress-site
 Sample IAC implementation using CloudFormation  to deploy WordPress site on AWS
 
-#Part 1 - Transformation and Migration to the Public Cloud
+# Part 1 - Transformation and Migration to the Public Cloud
 
 * To host the WordPress Site, I first deployed the AWS elastic cloud compute instance and then deployed the WordPress Application on Apache Web Server.
 
