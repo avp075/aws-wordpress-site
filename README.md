@@ -13,6 +13,8 @@ Sample IAC implementation using CloudFormation  to deploy WordPress site on AWS
 
 * Now to make our WordPress Site live, I used the link http://demo.aviralpandey.nl./ and once updated the wp-config.php file on EC2 instance, the WordPress Site is live.
 
+* I have used the https://www.draw.io/ online resource for desiging the arhitecture diagrams. 
+
 ![architecture diagram](https://github.com/aviral-tzu/demo-wordpress-site/blob/master/demo-diagram.jpg)
 
 ## Part 2 - CI/CD
