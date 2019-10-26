@@ -35,40 +35,14 @@ Parameters:
     Default: 'Z32O12XQLNTSW2'
 
 Resources:
-
-  WordpressSiteEc2Instance:
-    Type: AWS::EC2::Instance
-    Properties:
-      UserData:
-        Fn::Base64:
-          !Sub |
-          #!/bin/bash
-          yum update -y
-          yum install httpd php php-mysql -y
-          cd /var/www/html
-          echo "healthy" > healthy.html
-          wget https://wordpress.org/wordpress-5.1.1.tar.gz
-          tar -xzf wordpress-5.1.1.tar.gz
-          cp -r wordpress/* /var/www/html/
-          rm -rf wordpress
-          rm -rf wordpress-5.1.1.tar.gz
-          chmod -R 755 wp-content
-          chown -R apache:apache wp-content
-          chkconfig httpd on
-          service httpd start
-      ImageId:  ami-028188d9b49b32a80
-      InstanceType: t2.micro
-      SubnetId: subnet-69560d21
-      Tags:
-        - Key: Name
-          Value: wordpress-ec2-instance
-      KeyName: aviral2k19key
-      SecurityGroupIds:
-        - sg-068ecc2d65346af3d
         
   LoadBalancerWordPressSite:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
+      Tags: 
+        - 
+          Key: "Name"
+          Value: "Client1"
       Subnets:
           - subnet-4ba4ec2d
           - subnet-4ce27716
@@ -103,9 +77,6 @@ Resources:
       HealthCheckTimeoutSeconds: 2
       HealthyThresholdCount: 2
       TargetType: "instance"
-      Targets:
-          - Id: !Ref WordpressSiteEc2Instance
-            Port: 80
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
           Value: 30
@@ -122,6 +93,32 @@ Resources:
       Actions:
         - TargetGroupArn: !Ref LoadBalancerTargetGroup
           Type: forward
+
+  ASGWordPress: 
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones: 
+       - eu-west-1c
+       - eu-west-1b
+      LaunchConfigurationName: 
+       Ref: "LaunchConfigWordPress"
+      MinSize: "2"
+      MaxSize: "2"
+      TargetGroupARNs: 
+       - !Ref LoadBalancerTargetGroup
+      Tags: 
+        - Key: Name
+          PropagateAtLaunch: Yes
+          Value: WordPressSite1
+       
+  LaunchConfigWordPress: 
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties: 
+      KeyName: aviral2k19key
+      ImageId: ami-0aea3b18482ff8d2b
+      SecurityGroups: 
+        - sg-068ecc2d65346af3d
+      InstanceType: "t2.micro"
           
   WordPressDB: 
     Type: "AWS::RDS::DBInstance"
