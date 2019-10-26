@@ -1,10 +1,15 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: template to deploy application loadbalancer and connect to elastic cloud compute  
+Description: template to deploy application loadbalancer along with autoscaling and launch configuration. 
 
-Resources:  
+Resources:
+        
   LoadBalancerWordPressSite:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
+      Tags: 
+        - 
+          Key: "Name"
+          Value: "Client1"
       Subnets:
           - subnet-4ba4ec2d
           - subnet-4ce27716
@@ -39,10 +44,6 @@ Resources:
       HealthCheckTimeoutSeconds: 2
       HealthyThresholdCount: 2
       TargetType: "instance"
-      Targets:
-          - Id: 
-              Fn::ImportValue: template-deploy-elastic-cloud-compute-instance
-            Port: 80
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
           Value: 30
@@ -59,6 +60,32 @@ Resources:
       Actions:
         - TargetGroupArn: !Ref LoadBalancerTargetGroup
           Type: forward
+
+  ASGWordPress: 
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones: 
+       - eu-west-1c
+       - eu-west-1b
+      LaunchConfigurationName: 
+       Ref: "LaunchConfigWordPress"
+      MinSize: "2"
+      MaxSize: "2"
+      TargetGroupARNs: 
+       - !Ref LoadBalancerTargetGroup
+      Tags: 
+        - Key: Name
+          PropagateAtLaunch: Yes
+          Value: WordPressSite1
+       
+  LaunchConfigWordPress: 
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties: 
+      KeyName: aviral2k19key
+      ImageId: ami-0aea3b18482ff8d2b
+      SecurityGroups: 
+        - sg-068ecc2d65346af3d
+      InstanceType: "t2.micro"
 
 Outputs:
   LoadBalancerDNS:
