@@ -38,7 +38,7 @@ Resources:
       DBInstanceClass: db.t2.micro
       Engine: MySQL
       EngineVersion: "5.7.26"
-      AvailabilityZone: eu-west-1c
+      MultiAZ: true
       MasterUserPassword: 
         Ref: DBPassword
       MasterUsername: 
