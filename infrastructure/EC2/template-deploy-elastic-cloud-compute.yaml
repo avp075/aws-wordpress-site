@@ -13,7 +13,7 @@ Resources:
           yum install httpd php php-mysql -y
           cd /var/www/html
           echo "healthy" > healthy.html
-          wget https://wordpress.org/wordpress-5.1.1.tar.gz
+          https://github.com/aviral-tzu/demo-wordpress-site/blob/master/Application/wordpress-5.1.1.tar.gz
           tar -xzf wordpress-5.1.1.tar.gz
           cp -r wordpress/* /var/www/html/
           rm -rf wordpress
