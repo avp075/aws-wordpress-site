@@ -19,5 +19,5 @@ Sample IAC implementation using CloudFormation  to deploy WordPress site on AWS
 
 Dsign for the CI/CD pipeline to deploy the git commited code changes.
 
-![CICD design diagram]https://github.com/aviral-tzu/demo-wordpress-site/blob/master/CICD-Pipeline.jpg
+![CICD design diagram](https://github.com/aviral-tzu/demo-wordpress-site/blob/master/CICD-Pipeline.jpg)
 
