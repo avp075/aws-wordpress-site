@@ -12,7 +12,7 @@ Sample IAC implementation using CloudFormation  to deploy WordPress site on AWS
   * Application LoadBalancer to balance/route the incomming web traffic.
   * S3 Bucket to store the cloudformation templates and WordPress Site content.
   * Route53 to host a public domain name. 
-    http://demo.aviralpandey.nl.
+    http://demo.aviralpandey.nl./
 
 * As part of infra provisioning at first I deployed the AWS elastic cloud compute instance and then deployed the WordPress Application on Apache Web Server using cloudFormation. (used the prebuilt image with application code instead to application deployment with each new server)
 
