@@ -26,9 +26,4 @@ Sample IAC implementation using CloudFormation  to deploy WordPress site on AWS
 
 ![architecture diagram](https://github.com/aviral-tzu/demo-wordpress-site/blob/master/demo-diagram.jpg)
 
-## Part 2 - CI/CD
-
-Design for the CI/CD pipeline to deploy the git commited code changes.
-
-![CICD design diagram](https://github.com/aviral-tzu/demo-wordpress-site/blob/master/CICD-Pipeline.jpg)
 
